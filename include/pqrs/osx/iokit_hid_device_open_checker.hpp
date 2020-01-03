@@ -7,6 +7,7 @@
 // (See http://www.boost.org/LICENSE_1_0.txt)
 
 #include <pqrs/osx/iokit_hid_manager.hpp>
+#include <pqrs/osx/iokit_return.hpp>
 
 namespace pqrs {
 namespace osx {
