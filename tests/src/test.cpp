@@ -9,8 +9,8 @@ TEST_CASE("iokit_hid_device_open_checker") {
 
   std::vector<pqrs::cf::cf_ptr<CFDictionaryRef>> matching_dictionaries{
       pqrs::osx::iokit_hid_manager::make_matching_dictionary(
-          pqrs::osx::iokit_hid_usage_page::generic_desktop,
-          pqrs::osx::iokit_hid_usage::generic_desktop::keyboard),
+          pqrs::hid::usage_page::generic_desktop,
+          pqrs::hid::usage::generic_desktop::keyboard),
   };
 
   auto checker = std::make_unique<pqrs::osx::iokit_hid_device_open_checker>(dispatcher,
