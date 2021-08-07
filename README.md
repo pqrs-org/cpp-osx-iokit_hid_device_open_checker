@@ -1,5 +1,5 @@
 [![Build Status](https://github.com/pqrs-org/cpp-osx-iokit_hid_device_open_checker/workflows/CI/badge.svg)](https://github.com/pqrs-org/cpp-osx-iokit_hid_device_open_checker/actions)
-[![License](https://img.shields.io/badge/license-Boost%20Software%20License-blue.svg)](https://github.com/pqrs-org/cpp-osx-iokit_hid_device_open_checker/blob/master/LICENSE.md)
+[![License](https://img.shields.io/badge/license-Boost%20Software%20License-blue.svg)](https://github.com/pqrs-org/cpp-osx-iokit_hid_device_open_checker/blob/main/LICENSE.md)
 
 # cpp-osx-iokit_hid_device_open_checker
 
