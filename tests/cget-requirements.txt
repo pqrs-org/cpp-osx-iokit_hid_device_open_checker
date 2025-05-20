@@ -1,3 +1,0 @@
-boost-ext/ut
-pqrs-org/cpp-osx-iokit_hid_manager
-pqrs-org/cpp-osx-iokit_return
