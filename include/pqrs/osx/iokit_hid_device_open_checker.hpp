@@ -4,36 +4,38 @@
 
 // (C) Copyright Takayama Fumihiko 2019.
 // Distributed under the Boost Software License, Version 1.0.
-// (See http://www.boost.org/LICENSE_1_0.txt)
+// (See https://www.boost.org/LICENSE_1_0.txt)
 
+#include <pqrs/gsl.hpp>
 #include <pqrs/osx/iokit_hid_manager.hpp>
 #include <pqrs/osx/iokit_return.hpp>
 
-namespace pqrs {
-namespace osx {
+namespace pqrs::osx {
 class iokit_hid_device_open_checker final : public dispatcher::extra::dispatcher_client {
 public:
   // Signals (invoked from the dispatcher thread)
 
-  nod::signal<void(void)> device_open_permitted;
-  nod::signal<void(void)> device_open_forbidden;
+  nod::signal<void()> device_open_permitted;
+  nod::signal<void()> device_open_forbidden;
 
   // Methods
 
   iokit_hid_device_open_checker(const iokit_hid_device_open_checker&) = delete;
+  iokit_hid_device_open_checker& operator=(const iokit_hid_device_open_checker&) = delete;
 
   iokit_hid_device_open_checker(std::weak_ptr<dispatcher::dispatcher> weak_dispatcher,
-                                std::shared_ptr<cf::run_loop_thread> run_loop_thread,
+                                pqrs::not_null_shared_ptr_t<cf::run_loop_thread> run_loop_thread,
                                 const std::vector<cf::cf_ptr<CFDictionaryRef>>& matching_dictionaries,
-                                pqrs::dispatcher::duration device_matched_delay = pqrs::dispatcher::duration(0)) : dispatcher_client(weak_dispatcher),
-                                                                                                                   permitted_(false),
-                                                                                                                   timer_(*this) {
+                                pqrs::dispatcher::duration device_matched_delay = pqrs::dispatcher::duration::zero())
+      : dispatcher_client(weak_dispatcher),
+        permitted_(false),
+        timer_(*this) {
     iokit_hid_manager_ = std::make_unique<iokit_hid_manager>(weak_dispatcher,
                                                              run_loop_thread,
                                                              matching_dictionaries,
                                                              device_matched_delay);
 
-    iokit_hid_manager_->device_matched.connect([this](auto&& registry_entry_id, auto&& device) {
+    iokit_hid_manager_->device_matched.connect([this](auto&&, auto&& device) {
       if (device) {
         wait_ = 5;
 
@@ -42,16 +44,14 @@ public:
         if (!r.not_permitted()) {
           if (!permitted_) {
             permitted_ = true;
-            enqueue_to_dispatcher([this] {
-              device_open_permitted();
-            });
+            device_open_permitted();
           }
         }
       }
     });
   }
 
-  virtual ~iokit_hid_device_open_checker(void) {
+  ~iokit_hid_device_open_checker() noexcept override {
     detach_from_dispatcher([this] {
       timer_.stop();
 
@@ -59,8 +59,12 @@ public:
     });
   }
 
-  void async_start(void) {
-    if (iokit_hid_manager_) {
+  void async_start() {
+    enqueue_to_dispatcher([this] {
+      if (!iokit_hid_manager_) {
+        return;
+      }
+
       iokit_hid_manager_->async_start();
 
       timer_.start(
@@ -81,15 +85,13 @@ public:
             iokit_hid_manager_ = nullptr;
 
             if (!permitted_) {
-              enqueue_to_dispatcher([this] {
-                device_open_forbidden();
-              });
+              device_open_forbidden();
             }
 
             timer_.stop();
           },
           std::chrono::milliseconds(1000));
-    }
+    });
   }
 
 private:
@@ -98,5 +100,4 @@ private:
   std::optional<size_t> wait_;
   pqrs::dispatcher::extra::timer timer_;
 };
-} // namespace osx
-} // namespace pqrs
+} // namespace pqrs::osx
