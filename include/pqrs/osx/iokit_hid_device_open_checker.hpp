@@ -12,6 +12,10 @@
 
 namespace pqrs::osx {
 class iokit_hid_device_open_checker final : public dispatcher::extra::dispatcher_client {
+private:
+  // Keep the guard first so member initialization failures also detach.
+  pqrs::dispatcher::extra::dispatcher_client_constructor_exception_guard dispatcher_client_constructor_exception_guard_{*this};
+
 public:
   // Signals (invoked from the dispatcher thread)
 
@@ -30,25 +34,28 @@ public:
       : dispatcher_client(weak_dispatcher),
         permitted_(false),
         timer_(*this) {
-    iokit_hid_manager_ = std::make_unique<iokit_hid_manager>(weak_dispatcher,
-                                                             run_loop_thread,
-                                                             matching_dictionaries,
-                                                             device_matched_delay);
+    dispatcher_client_constructor_exception_guard_.initialize(
+        [&] {
+          iokit_hid_manager_ = std::make_unique<iokit_hid_manager>(weak_dispatcher,
+                                                                   run_loop_thread,
+                                                                   matching_dictionaries,
+                                                                   device_matched_delay);
 
-    iokit_hid_manager_->device_matched.connect([this](auto&&, auto&& device) {
-      if (device) {
-        wait_ = 5;
+          iokit_hid_manager_->device_matched.connect([this](auto&&, auto&& device) {
+            if (device) {
+              wait_ = 5;
 
-        iokit_return r = IOHIDDeviceOpen(*device, kIOHIDOptionsTypeNone);
+              iokit_return r = IOHIDDeviceOpen(*device, kIOHIDOptionsTypeNone);
 
-        if (!r.not_permitted()) {
-          if (!permitted_) {
-            permitted_ = true;
-            device_open_permitted();
-          }
-        }
-      }
-    });
+              if (!r.not_permitted()) {
+                if (!permitted_) {
+                  permitted_ = true;
+                  device_open_permitted();
+                }
+              }
+            }
+          });
+        });
   }
 
   ~iokit_hid_device_open_checker() noexcept override {
@@ -98,6 +105,7 @@ private:
   std::unique_ptr<iokit_hid_manager> iokit_hid_manager_;
   bool permitted_;
   std::optional<size_t> wait_;
+  // Construct after potentially throwing members; destruction requires detach.
   pqrs::dispatcher::extra::timer timer_;
 };
 } // namespace pqrs::osx
