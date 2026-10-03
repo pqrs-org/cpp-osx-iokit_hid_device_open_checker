@@ -32,7 +32,6 @@ public:
                                 const std::vector<cf::cf_ptr<CFDictionaryRef>>& matching_dictionaries,
                                 pqrs::dispatcher::duration device_matched_delay = pqrs::dispatcher::duration::zero())
       : dispatcher_client(weak_dispatcher),
-        permitted_(false),
         timer_(*this) {
     dispatcher_client_constructor_exception_guard_.initialize(
         [&] {
@@ -103,8 +102,9 @@ public:
 
 private:
   std::unique_ptr<iokit_hid_manager> iokit_hid_manager_;
-  bool permitted_;
+  bool permitted_{false};
   std::optional<size_t> wait_;
+
   // Construct after potentially throwing members; destruction requires detach.
   pqrs::dispatcher::extra::timer timer_;
 };
