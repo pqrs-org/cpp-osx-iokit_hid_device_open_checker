@@ -1,4 +1,5 @@
 #include <csignal>
+#include <pqrs/osx/autorelease_pool.hpp>
 #include <pqrs/osx/iokit_hid_device_open_checker.hpp>
 
 namespace {
@@ -11,8 +12,12 @@ int main() {
   });
 
   auto time_source = std::make_shared<pqrs::dispatcher::hardware_time_source>();
-  auto dispatcher = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
-  auto run_loop_thread = std::make_shared<pqrs::cf::run_loop_thread>();
+  auto dispatcher = std::make_shared<pqrs::dispatcher::dispatcher>(
+      time_source,
+      pqrs::osx::autorelease_pool::execute_with_autorelease_pool);
+  auto run_loop_thread = std::make_shared<pqrs::cf::run_loop_thread>(
+      pqrs::cf::run_loop_thread::failure_policy::abort,
+      pqrs::osx::autorelease_pool::execute_with_autorelease_pool);
 
   std::vector<pqrs::cf::cf_ptr<CFDictionaryRef>> matching_dictionaries{
       pqrs::osx::iokit_hid_manager::make_matching_dictionary(
