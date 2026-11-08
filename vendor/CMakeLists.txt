@@ -11,6 +11,7 @@ file(MAKE_DIRECTORY "${VENDOR_INCLUDE_DIR}")
 include("${CMAKE_CURRENT_LIST_DIR}/cpm-cmake-package-lock/cmake/common.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cpm-cmake-package-lock/cmake/dependency.cmake")
 
+copy_vendor_package(pqrs_osx_autorelease_pool)
 copy_vendor_package(pqrs_osx_iokit_hid_manager)
 copy_vendor_package(pqrs_osx_iokit_return)
 copy_vendor_package(ut)
