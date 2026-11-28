@@ -9,6 +9,7 @@ A checker whether the current process is granted to open IOHIDDevice.
 
 cpp-osx-iokit_hid_device_open_checker depends the following classes.
 
+- [pqrs::gsl](https://github.com/pqrs-org/cpp-gsl)
 - [pqrs::osx::iokit_hid_manager](https://github.com/pqrs-org/cpp-osx-iokit_hid_manager)
 - [pqrs::osx::iokit_return](https://github.com/pqrs-org/cpp-osx-iokit_return)
 
